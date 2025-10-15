@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golden Beauty</title>
+    <title>Agenda Online Beleza Multi-Dias - SIMULAÇÃO DE BACKEND</title>
     
     <link rel="stylesheet" href="style.css"> 
     
@@ -30,8 +30,10 @@
             { nome: "Lash Design", duracao: 90 }
         ];
 
-        const AGENDAMENTOS_STORAGE_KEY = 'agendamentos_multi_dias';
-
+        // ⚠️ SIMULAÇÃO DE UM ENDPOINT DE BACKEND (JSONPlaceholder é um mock)
+        // Em um projeto real, esta URL seria seu servidor (Firebase, Sheet API, etc.)
+        const API_BASE_URL = 'https://jsonplaceholder.typicode.com/posts'; // Endpoint de teste
+        
         // UTILITY: Formata a data para a chave de armazenamento (YYYY-MM-DD)
         const formatDate = (date) => {
             return date.toISOString().split('T')[0];
@@ -46,13 +48,12 @@
                 const day = new Date(today);
                 day.setDate(today.getDate() + i);
                 
-                // 0 = Domingo, 1 = Segunda, 2 = Terça, ..., 6 = Sábado
                 const dayOfWeek = day.getDay();
                 
                 // Ignora segunda-feira (1)
                 if (dayOfWeek !== 1) {
                     dates.push({
-                        value: formatDate(day), // Ex: "2025-10-15"
+                        value: formatDate(day),
                         label: day.toLocaleDateString('pt-BR', { weekday: 'short', month: 'numeric', day: 'numeric' })
                     });
                 }
@@ -65,20 +66,104 @@
         // UTILITY: Define a data inicial (o primeiro dia disponível)
         const DATA_INICIAL = DIAS_DISPONIVEIS[0].value;
 
-        // Função para carregar **TODOS** os agendamentos do localStorage
-        const loadAllAgendamentos = () => {
-            try {
-                const stored = localStorage.getItem(AGENDAMENTOS_STORAGE_KEY);
-                // Retorna um objeto vazio se nada for encontrado, ou o JSON parseado
-                return stored ? JSON.parse(stored) : {};
-            } catch (error) {
-                console.error("Erro ao carregar agendamentos do localStorage:", error);
-                return {};
-            }
+
+        // ⭐️ FUNÇÃO DE PERSISTÊNCIA: Carregar dados do "servidor"
+        const fetchAgendamentos = async (setDataCallback) => {
+            // Em um APP real, você buscaria os dados por dia ou todos de uma vez.
+            // Aqui, simulamos que o servidor retorna uma lista base com um agendamento.
+            console.log("SIMULANDO: Buscando agendamentos do servidor...");
+            
+            // Dados de teste para simular o que viria do servidor:
+            const defaultDate = DIAS_DISPONIVEIS[0].value;
+            const dataSimuladaDoServidor = {
+                [defaultDate]: [
+                    { 
+                        id: `server-test-${defaultDate}`, 
+                        horario: "11:00", 
+                        nome: "Cliente Servidor (Simulação)", 
+                        servico: "Cabelo", 
+                        telefone: "1111-2222", 
+                        data: defaultDate 
+                    },
+                ],
+            };
+
+            // ⚠️ Neste mock, retornamos apenas o dado simulado. 
+            // Você substituiria este bloco pela chamada 'fetch' real:
+            // try {
+            //     const response = await fetch(API_BASE_URL);
+            //     const data = await response.json();
+            //     setDataCallback(data); // Assume que 'data' tem o formato correto: { "YYYY-MM-DD": [...] }
+            // } catch (error) {
+            //     console.error("Erro ao buscar dados reais:", error);
+            //     setDataCallback(dataSimuladaDoServidor);
+            // }
+
+            setDataCallback(dataSimuladaDoServidor); 
+            console.log("SIMULANDO: Agendamentos carregados. (Esses dados não persistem no mock API)");
         };
 
+        // ⭐️ FUNÇÃO DE PERSISTÊNCIA: Enviar dados para o "servidor"
+        const sendAgendamentoToServer = async (novoAgendamento) => {
+            console.log("SIMULANDO: Enviando novo agendamento para o servidor...");
+
+            // Em um APP real, você faria um POST para o seu servidor
+            /* try {
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(novoAgendamento),
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro do servidor: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log("Agendamento salvo com sucesso no servidor:", data);
+                return data; 
+            } catch (error) {
+                console.error("Erro ao salvar agendamento no servidor:", error);
+                alert("Erro ao salvar agendamento! Consulte o console.");
+                return null;
+            }
+            */
+            
+            // Retorna o próprio objeto para simular sucesso
+            console.log("SIMULANDO: Servidor aceitou o agendamento.");
+            return novoAgendamento; 
+        };
+        
+        // ⭐️ FUNÇÃO DE PERSISTÊNCIA: Deletar agendamento no "servidor"
+        const deleteAgendamentoFromServer = async (agendamentoId) => {
+            console.log(`SIMULANDO: Tentando deletar agendamento ID: ${agendamentoId} no servidor...`);
+            
+            // Em um APP real, você faria um DELETE para o seu servidor
+            /*
+            try {
+                const response = await fetch(`${API_BASE_URL}/${agendamentoId}`, {
+                    method: 'DELETE',
+                });
+                if (!response.ok) {
+                    throw new Error(`Erro do servidor ao deletar: ${response.status}`);
+                }
+                console.log("Agendamento deletado com sucesso no servidor.");
+                return true; 
+            } catch (error) {
+                console.error("Erro ao deletar agendamento no servidor:", error);
+                alert("Erro ao tentar cancelar agendamento! Consulte o console.");
+                return false;
+            }
+            */
+            
+            console.log("SIMULANDO: Servidor aceitou o cancelamento.");
+            return true;
+        };
+
+
         // ====================================================================
-        // 1. COMPONENTE LOGIN DONO
+        // 1. COMPONENTE LOGIN DONO (SEM MUDANÇAS)
         // ====================================================================
         const LoginDono = ({ onLoginSuccess, onCancel }) => {
             const [username, setUsername] = React.useState('');
@@ -101,6 +186,7 @@
             return (
                 <div className="login-form">
                     <h3>Acesso Restrito - Dono/Profissional</h3>
+                    <p style={{textAlign: 'center', fontSize: '0.8em'}}>Usuário de Teste: Dono, Senha: 123</p>
                     <form onSubmit={handleSubmit}>
                         {error && <p className="error-message">{error}</p>}
                         <label>
@@ -121,7 +207,7 @@
         };
 
         // ====================================================================
-        // 2. COMPONENTE AGENDAMENTO CLIENTE
+        // 2. COMPONENTE AGENDAMENTO CLIENTE (SEM MUDANÇAS)
         // ====================================================================
         const AgendamentoCliente = ({ dataSelecionada, horarioSelecionado, onAgendar }) => {
             const [nome, setNome] = React.useState('');
@@ -131,12 +217,10 @@
             const handleSubmit = (e) => {
                 e.preventDefault();
                 if (nome && horarioSelecionado) {
-                    // Adiciona o 'id' para facilitar o cancelamento futuro e a data
                     const id = `${dataSelecionada}-${horarioSelecionado}-${Date.now()}`;
                     onAgendar({ id, nome, data: dataSelecionada, horario: horarioSelecionado, servico, telefone });
-                    alert(`Agendamento de ${servico} para ${horarioSelecionado} do dia ${dataSelecionada} realizado com sucesso!`);
                     
-                    // Limpa o formulário
+                    // Limpa o formulário APÓS o agendamento ser processado (no onAgendar)
                     setNome('');
                     setServico(SERVICOS[0].nome);
                     setTelefone('');
@@ -166,51 +250,57 @@
         };
 
         // ====================================================================
-        // 3. COMPONENTE AGENDA (Com gestão de Múltiplos Dias e Cancelamento)
+        // 3. COMPONENTE AGENDA (Com integração de "Backend")
         // ====================================================================
         const Agenda = ({ perfil }) => {
-            // Estado principal: { "YYYY-MM-DD": [{...agendamento}] }
-            const [todosAgendamentos, setTodosAgendamentos] = React.useState(loadAllAgendamentos);
+            // Estado principal, agora iniciado como vazio (será preenchido pelo fetch)
+            const [todosAgendamentos, setTodosAgendamentos] = React.useState({});
             const [dataSelecionada, setDataSelecionada] = React.useState(DATA_INICIAL);
             const [horarioSelecionado, setHorarioSelecionado] = React.useState(null);
+            const [isLoading, setIsLoading] = React.useState(true);
 
             // Agendamentos apenas para o dia selecionado
             const agendamentosDoDia = todosAgendamentos[dataSelecionada] || [];
 
-            // Hook para salvar TODOS os dados no localStorage sempre que 'todosAgendamentos' muda
+            // ⭐️ useEffect para CARREGAR DADOS NA INICIALIZAÇÃO
             React.useEffect(() => {
-                try {
-                    localStorage.setItem(AGENDAMENTOS_STORAGE_KEY, JSON.stringify(todosAgendamentos));
-                } catch (error) {
-                    console.error("Erro ao salvar agendamentos no localStorage:", error);
-                }
-            }, [todosAgendamentos]);
+                const loadData = async () => {
+                    setIsLoading(true);
+                    // Passamos o setter do estado para a função assíncrona
+                    await fetchAgendamentos(setTodosAgendamentos);
+                    setIsLoading(false);
+                };
+                loadData();
+            }, []); // Array vazio garante que rode apenas uma vez
 
             const isOcupado = (horario) => {
                 return agendamentosDoDia.some(a => a.horario === horario);
             };
 
-            // Função para Cancelar Agendamento (Usado apenas pelo Dono)
-            const handleCancelar = (agendamentoId) => {
-                if (window.confirm("Tem certeza que deseja cancelar este agendamento?")) {
-                    setTodosAgendamentos(prevTodos => {
-                        // Filtra o agendamento a ser removido no dia selecionado
-                        const updatedDayAppointments = prevTodos[dataSelecionada].filter(
-                            a => a.id !== agendamentoId
-                        );
-                        
-                        return {
-                            ...prevTodos,
-                            [dataSelecionada]: updatedDayAppointments
-                        };
-                    });
-                    alert("Agendamento cancelado com sucesso!");
+            // Função para Cancelar Agendamento (Usado pelo Dono)
+            const handleCancelar = async (agendamentoId) => {
+                if (window.confirm("Tem certeza que deseja CANCELAR este agendamento?")) {
+                    const success = await deleteAgendamentoFromServer(agendamentoId); // ⭐️ Chama a API
+                    
+                    if (success) {
+                         // Se o servidor aceitou, atualizamos o estado local
+                        setTodosAgendamentos(prevTodos => {
+                            const updatedDayAppointments = prevTodos[dataSelecionada].filter(
+                                a => a.id !== agendamentoId
+                            );
+                            return {
+                                ...prevTodos,
+                                [dataSelecionada]: updatedDayAppointments
+                            };
+                        });
+                        alert("Agendamento cancelado com sucesso!");
+                    }
                 }
             };
             
             const handleHorarioClick = (horario) => {
                 const ocupado = isOcupado(horario);
-                setHorarioSelecionado(null); // Limpa seleção anterior
+                setHorarioSelecionado(null);
 
                 if (perfil === 'cliente') {
                     if (!ocupado) {
@@ -233,27 +323,33 @@
                 }
             };
 
-            const handleAgendar = (novoAgendamento) => {
-                // A verificação de ocupado já foi feita no momento do clique, mas repetimos por segurança
+            const handleAgendar = async (novoAgendamento) => {
                 if (isOcupado(novoAgendamento.horario)) {
                     alert('Erro: Horário ocupado.');
                     return;
                 }
                 
-                // ⭐️ ATUALIZAÇÃO NO ESTADO MULTI-DIAS
-                setTodosAgendamentos(prevTodos => {
-                    // Pega a lista de agendamentos do dia atual ou um array vazio
-                    const currentDayAppointments = prevTodos[novoAgendamento.data] || [];
+                // ⭐️ Envia o agendamento para o "servidor"
+                const savedAgendamento = await sendAgendamentoToServer(novoAgendamento);
 
-                    return {
-                        ...prevTodos,
-                        // Adiciona o novo agendamento à lista do dia específico
-                        [novoAgendamento.data]: [...currentDayAppointments, novoAgendamento]
-                    };
-                });
-                
-                setHorarioSelecionado(null);
+                if (savedAgendamento) {
+                    // Atualiza o estado local apenas se o servidor aceitou
+                    setTodosAgendamentos(prevTodos => {
+                        const currentDayAppointments = prevTodos[novoAgendamento.data] || [];
+
+                        return {
+                            ...prevTodos,
+                            [novoAgendamento.data]: [...currentDayAppointments, savedAgendamento]
+                        };
+                    });
+                    
+                    setHorarioSelecionado(null);
+                }
             };
+
+            if (isLoading) {
+                return <div className="loading-message">Carregando dados... (Aguarde alguns segundos)</div>;
+            }
 
             return (
                 <div className={perfil === 'dono' ? 'agenda-dono' : ''}>
@@ -267,7 +363,7 @@
                                 value={dataSelecionada} 
                                 onChange={(e) => { 
                                     setDataSelecionada(e.target.value); 
-                                    setHorarioSelecionado(null); // Limpa seleção ao mudar o dia
+                                    setHorarioSelecionado(null);
                                 }}
                             >
                                 {DIAS_DISPONIVEIS.map(dia => (
@@ -342,9 +438,9 @@
             return (
                 <div className="App">
                     <header>
-                        {/* ⭐️ ADICIONANDO O ÍCONE/LOGO AQUI */}
-                        <img src="ícone beleza.jpg" alt="Logotipo do Salão de Beleza" className="site-logo" />
-                        <h1>-Golden Beauty-</h1>
+                        <img src="logo-salao.png" alt="Logotipo do Salão de Beleza" className="site-logo" />
+                        <h1>Sistema de Agendamento de Beleza Multi-Dias</h1>
+                        <p style={{fontSize: '0.8em', color: '#dc3545', fontWeight: 'bold'}}>⚠️ Simulação de Servidor: Agendamentos não serão salvos após recarregar!</p>
                     </header>
                     
                     <div className="perfil-botoes">
