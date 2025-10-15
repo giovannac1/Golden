@@ -1,0 +1,268 @@
+/* style.css */
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #eec2cd;
+}
+
+.App {
+    max-width: 900px;
+    margin: 0 auto;
+    background: rgb(231, 151, 182);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(48, 44, 44, 0.1);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* ==================================== */
+/* ESTILOS DE BOTÃO DE PERFIL */
+/* ==================================== */
+.perfil-botoes {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.perfil-botoes button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.perfil-botoes .cliente {
+    background-color: #f154a3;
+    color: white;
+}
+
+.perfil-botoes .dono {
+    background-color: #af2a62;
+    color: white;
+}
+
+.perfil-botoes .ativo {
+    box-shadow: 0 0 0 3px #f154a3;
+    font-weight: bold;
+}
+
+/* ==================================== */
+/* ESTILOS DO SELETOR DE DATA (NOVO) */
+/* ==================================== */
+.seletor-data {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #f7f7f7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.seletor-data label {
+    font-weight: bold;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.seletor-data select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+}
+
+.data-atual {
+    font-size: 1.1em;
+    color: #000000;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* ==================================== */
+/* ESTILOS DA AGENDA */
+/* ==================================== */
+.agenda-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.horario {
+    padding: 15px 5px;
+    border-radius: 5px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.1s;
+}
+
+.horario:hover {
+    transform: scale(1.05);
+}
+
+.livre {
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #ffffff;
+}
+
+.ocupado {
+    background-color: #ffe6e6;
+    color: #ff5999;
+    border: 1px solid #ffc8c8;
+    cursor: not-allowed;
+}
+
+/* Estilo específico para horário ocupado no perfil do Dono (permite clique para ver/cancelar) */
+.agenda-dono .horario.ocupado {
+    background-color: #f391b2; 
+    color: #b11637;
+    border-color: #f19bb8;
+    cursor: pointer;
+}
+
+/* ==================================== */
+/* ESTILOS DO FORMULÁRIO DE AGENDAMENTO CLIENTE */
+/* ==================================== */
+.form-agendamento {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #fdfdfd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.form-agendamento h3 {
+    margin-top: 0;
+    color: #000000;
+}
+
+.form-agendamento label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.form-agendamento input, .form-agendamento select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.form-agendamento button[type="submit"] {
+    background-color: #f099da;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.form-agendamento button[type="submit"]:hover {
+    background-color: #f187b0;
+}
+
+/* ==================================== */
+/* ESTILOS PARA O LOGIN DO DONO */
+/* ==================================== */
+.login-form {
+    max-width: 400px;
+    margin: 40px auto;
+    padding: 30px;
+    border: 1px solid #ffffff;
+    border-radius: 8px;
+    background-color: #fff8e1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.login-form h3 {
+    text-align: center;
+    color: #e96195;
+    margin-bottom: 20px;
+}
+
+.login-form input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.login-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+.login-form button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.login-form button[type="submit"] {
+    background-color: #f59fc3;
+    color: white;
+}
+
+.login-form button[type="submit"]:hover {
+    background-color: #c08ca0;
+}
+
+.login-form button[type="button"] {
+    background-color: #f09abb;
+    color: white;
+}
+
+.login-form button[type="button"]:hover {
+    background-color: #c27ba2;
+}
+
+.error-message {
+    color: #e74040;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+/* style.css - Adicione estes estilos */
+
+/* Estilos para o Logo */
+.site-logo {
+    max-width: 150px; /* Define o tamanho máximo da sua imagem */
+    height: auto;
+    display: block;
+    margin: 0 auto 10px; /* Centraliza e adiciona margem inferior */
+}
+
+/* Garante que o cabeçalho centralize o conteúdo */
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}

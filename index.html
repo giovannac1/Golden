@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golden Beauty</title>
+    
+    <link rel="stylesheet" href="style.css"> 
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        
+        // ====================================================================
+        // CONSTANTES E FUNÇÕES DE UTILITY
+        // ====================================================================
+        const HORARIOS = [
+            "09:00", "10:00", "11:00", "12:00",
+            "14:00", "15:00", "16:00", "17:00", "18:00"
+        ];
+        const SERVICOS = [
+            { nome: "Cabelo", duracao: 60 },
+            { nome: "Manicure", duracao: 45 },
+            { nome: "Pedicure", duracao: 45 },
+            { nome: "Lash Design", duracao: 90 }
+        ];
+
+        const AGENDAMENTOS_STORAGE_KEY = 'agendamentos_multi_dias';
+
+        // UTILITY: Formata a data para a chave de armazenamento (YYYY-MM-DD)
+        const formatDate = (date) => {
+            return date.toISOString().split('T')[0];
+        };
+
+        // UTILITY: Gera a lista de datas da semana (ignorando segunda-feira)
+        const getNextWeekDays = () => {
+            const dates = [];
+            const today = new Date();
+            
+            for (let i = 0; i < 7; i++) {
+                const day = new Date(today);
+                day.setDate(today.getDate() + i);
+                
+                // 0 = Domingo, 1 = Segunda, 2 = Terça, ..., 6 = Sábado
+                const dayOfWeek = day.getDay();
+                
+                // Ignora segunda-feira (1)
+                if (dayOfWeek !== 1) {
+                    dates.push({
+                        value: formatDate(day), // Ex: "2025-10-15"
+                        label: day.toLocaleDateString('pt-BR', { weekday: 'short', month: 'numeric', day: 'numeric' })
+                    });
+                }
+            }
+            return dates;
+        };
+
+        const DIAS_DISPONIVEIS = getNextWeekDays();
+        
+        // UTILITY: Define a data inicial (o primeiro dia disponível)
+        const DATA_INICIAL = DIAS_DISPONIVEIS[0].value;
+
+        // Função para carregar **TODOS** os agendamentos do localStorage
+        const loadAllAgendamentos = () => {
+            try {
+                const stored = localStorage.getItem(AGENDAMENTOS_STORAGE_KEY);
+                // Retorna um objeto vazio se nada for encontrado, ou o JSON parseado
+                return stored ? JSON.parse(stored) : {};
+            } catch (error) {
+                console.error("Erro ao carregar agendamentos do localStorage:", error);
+                return {};
+            }
+        };
+
+        // ====================================================================
+        // 1. COMPONENTE LOGIN DONO
+        // ====================================================================
+        const LoginDono = ({ onLoginSuccess, onCancel }) => {
+            const [username, setUsername] = React.useState('');
+            const [password, setPassword] = React.useState('');
+            const [error, setError] = React.useState('');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const USER_CORRETO = "Dono";
+                const SENHA_CORRETA = "123";
+
+                if (username === USER_CORRETO && password === SENHA_CORRETA) {
+                    setError('');
+                    onLoginSuccess();
+                } else {
+                    setError('Usuário ou senha incorretos.');
+                }
+            };
+
+            return (
+                <div className="login-form">
+                    <h3>Acesso Restrito - Dono/Profissional</h3>
+                    <form onSubmit={handleSubmit}>
+                        {error && <p className="error-message">{error}</p>}
+                        <label>
+                            Usuário:
+                            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
+                        </label>
+                        <label>
+                            Senha:
+                            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                        </label>
+                        <div className="login-actions">
+                            <button type="submit">Entrar</button>
+                            <button type="button" onClick={onCancel}>Voltar</button>
+                        </div>
+                    </form>
+                </div>
+            );
+        };
+
+        // ====================================================================
+        // 2. COMPONENTE AGENDAMENTO CLIENTE
+        // ====================================================================
+        const AgendamentoCliente = ({ dataSelecionada, horarioSelecionado, onAgendar }) => {
+            const [nome, setNome] = React.useState('');
+            const [servico, setServico] = React.useState(SERVICOS[0].nome);
+            const [telefone, setTelefone] = React.useState('');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (nome && horarioSelecionado) {
+                    // Adiciona o 'id' para facilitar o cancelamento futuro e a data
+                    const id = `${dataSelecionada}-${horarioSelecionado}-${Date.now()}`;
+                    onAgendar({ id, nome, data: dataSelecionada, horario: horarioSelecionado, servico, telefone });
+                    alert(`Agendamento de ${servico} para ${horarioSelecionado} do dia ${dataSelecionada} realizado com sucesso!`);
+                    
+                    // Limpa o formulário
+                    setNome('');
+                    setServico(SERVICOS[0].nome);
+                    setTelefone('');
+                }
+            };
+
+            return (
+                <form onSubmit={handleSubmit} className="form-agendamento">
+                    <h3>Agendar para: {dataSelecionada} às {horarioSelecionado}</h3>
+                    <label>
+                        Nome:
+                        <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} required />
+                    </label>
+                    <label>
+                        Telefone:
+                        <input type="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+                    </label>
+                    <label>
+                        Serviço:
+                        <select value={servico} onChange={(e) => setServico(e.target.value)} required>
+                            {SERVICOS.map(s => <option key={s.nome} value={s.nome}>{s.nome}</option>)}
+                        </select>
+                    </label>
+                    <button type="submit">Confirmar Agendamento</button>
+                </form>
+            );
+        };
+
+        // ====================================================================
+        // 3. COMPONENTE AGENDA (Com gestão de Múltiplos Dias e Cancelamento)
+        // ====================================================================
+        const Agenda = ({ perfil }) => {
+            // Estado principal: { "YYYY-MM-DD": [{...agendamento}] }
+            const [todosAgendamentos, setTodosAgendamentos] = React.useState(loadAllAgendamentos);
+            const [dataSelecionada, setDataSelecionada] = React.useState(DATA_INICIAL);
+            const [horarioSelecionado, setHorarioSelecionado] = React.useState(null);
+
+            // Agendamentos apenas para o dia selecionado
+            const agendamentosDoDia = todosAgendamentos[dataSelecionada] || [];
+
+            // Hook para salvar TODOS os dados no localStorage sempre que 'todosAgendamentos' muda
+            React.useEffect(() => {
+                try {
+                    localStorage.setItem(AGENDAMENTOS_STORAGE_KEY, JSON.stringify(todosAgendamentos));
+                } catch (error) {
+                    console.error("Erro ao salvar agendamentos no localStorage:", error);
+                }
+            }, [todosAgendamentos]);
+
+            const isOcupado = (horario) => {
+                return agendamentosDoDia.some(a => a.horario === horario);
+            };
+
+            // Função para Cancelar Agendamento (Usado apenas pelo Dono)
+            const handleCancelar = (agendamentoId) => {
+                if (window.confirm("Tem certeza que deseja cancelar este agendamento?")) {
+                    setTodosAgendamentos(prevTodos => {
+                        // Filtra o agendamento a ser removido no dia selecionado
+                        const updatedDayAppointments = prevTodos[dataSelecionada].filter(
+                            a => a.id !== agendamentoId
+                        );
+                        
+                        return {
+                            ...prevTodos,
+                            [dataSelecionada]: updatedDayAppointments
+                        };
+                    });
+                    alert("Agendamento cancelado com sucesso!");
+                }
+            };
+            
+            const handleHorarioClick = (horario) => {
+                const ocupado = isOcupado(horario);
+                setHorarioSelecionado(null); // Limpa seleção anterior
+
+                if (perfil === 'cliente') {
+                    if (!ocupado) {
+                        setHorarioSelecionado(horario);
+                    } else {
+                        alert('Este horário já está ocupado. Por favor, selecione outro.');
+                    }
+                } else if (perfil === 'dono') {
+                    const agendamento = agendamentosDoDia.find(a => a.horario === horario);
+                    
+                    if (agendamento) {
+                        const confirmCancel = window.confirm(`DETALHES DO AGENDAMENTO:\nDia: ${agendamento.data}\nHorário: ${agendamento.horario}\nCliente: ${agendamento.nome}\nServiço: ${agendamento.servico}\nTel: ${agendamento.telefone}\n\nDeseja CANCELAR este agendamento?`);
+                        
+                        if (confirmCancel) {
+                            handleCancelar(agendamento.id);
+                        }
+                    } else {
+                        alert(`Horário ${horario} do dia ${dataSelecionada} está livre.`);
+                    }
+                }
+            };
+
+            const handleAgendar = (novoAgendamento) => {
+                // A verificação de ocupado já foi feita no momento do clique, mas repetimos por segurança
+                if (isOcupado(novoAgendamento.horario)) {
+                    alert('Erro: Horário ocupado.');
+                    return;
+                }
+                
+                // ⭐️ ATUALIZAÇÃO NO ESTADO MULTI-DIAS
+                setTodosAgendamentos(prevTodos => {
+                    // Pega a lista de agendamentos do dia atual ou um array vazio
+                    const currentDayAppointments = prevTodos[novoAgendamento.data] || [];
+
+                    return {
+                        ...prevTodos,
+                        // Adiciona o novo agendamento à lista do dia específico
+                        [novoAgendamento.data]: [...currentDayAppointments, novoAgendamento]
+                    };
+                });
+                
+                setHorarioSelecionado(null);
+            };
+
+            return (
+                <div className={perfil === 'dono' ? 'agenda-dono' : ''}>
+                    <h2>Agenda de Horários ({perfil === 'dono' ? 'Dono' : 'Cliente'})</h2>
+                    
+                    {/* Seletor de Data */}
+                    <div className="seletor-data">
+                        <label>
+                            Escolher Dia:
+                            <select 
+                                value={dataSelecionada} 
+                                onChange={(e) => { 
+                                    setDataSelecionada(e.target.value); 
+                                    setHorarioSelecionado(null); // Limpa seleção ao mudar o dia
+                                }}
+                            >
+                                {DIAS_DISPONIVEIS.map(dia => (
+                                    <option key={dia.value} value={dia.value}>{dia.label}</option>
+                                ))}
+                            </select>
+                        </label>
+                        <p className="data-atual">Dia Selecionado: <strong>{dataSelecionada}</strong></p>
+                    </div>
+
+                    <div className="agenda-container">
+                        {HORARIOS.map((horario) => {
+                            const ocupado = isOcupado(horario);
+                            const classe = ocupado ? 'ocupado' : 'livre';
+
+                            return (
+                                <div
+                                    key={horario}
+                                    className={`horario ${classe}`}
+                                    onClick={() => handleHorarioClick(horario)}
+                                >
+                                    {horario}
+                                    <br />
+                                    <span style={{ fontSize: '0.8em' }}>{ocupado ? 'Ocupado' : 'Livre'}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Formulário visível apenas para o cliente e se um horário livre for selecionado */}
+                    {perfil === 'cliente' && horarioSelecionado && !isOcupado(horarioSelecionado) && (
+                        <AgendamentoCliente 
+                            dataSelecionada={dataSelecionada}
+                            horarioSelecionado={horarioSelecionado} 
+                            onAgendar={handleAgendar} 
+                        />
+                    )}
+                </div>
+            );
+        };
+
+        // ====================================================================
+        // 4. COMPONENTE APP (Gerencia o estado do perfil e login)
+        // ====================================================================
+        const App = () => {
+            const [perfil, setPerfil] = React.useState('cliente'); 
+
+            const handleSetPerfil = (novoPerfil) => {
+                if (novoPerfil === 'dono') {
+                    setPerfil('login_dono');
+                } else if (novoPerfil === 'cliente') {
+                    setPerfil('cliente');
+                } else if (novoPerfil === 'dono_logado') {
+                    setPerfil('dono_logado');
+                }
+            };
+
+            const perfilAgenda = perfil === 'dono_logado' ? 'dono' : 'cliente';
+
+            let content;
+            if (perfil === 'login_dono') {
+                content = (
+                    <LoginDono 
+                        onLoginSuccess={() => handleSetPerfil('dono_logado')} 
+                        onCancel={() => handleSetPerfil('cliente')} 
+                    />
+                );
+            } else {
+                content = <Agenda perfil={perfilAgenda} />;
+            }
+
+            return (
+                <div className="App">
+                    <header>
+                        {/* ⭐️ ADICIONANDO O ÍCONE/LOGO AQUI */}
+                        <img src="ícone beleza.jpg" alt="Logotipo do Salão de Beleza" className="site-logo" />
+                        <h1>-Golden Beauty-</h1>
+                    </header>
+                    
+                    <div className="perfil-botoes">
+                        <button 
+                            className={`cliente ${perfil === 'cliente' ? 'ativo' : ''}`}
+                            onClick={() => handleSetPerfil('cliente')}
+                        >
+                            Visualização Cliente
+                        </button>
+                        <button 
+                            className={`dono ${perfil === 'dono_logado' ? 'ativo' : ''}`}
+                            onClick={() => handleSetPerfil('dono')}
+                            disabled={perfil === 'dono_logado'}
+                        >
+                            Acesso Dono
+                        </button>
+                        
+                        {perfil === 'dono_logado' && (
+                            <button 
+                                className="dono"
+                                onClick={() => handleSetPerfil('cliente')}
+                                style={{marginLeft: '10px', backgroundColor: '#dc3545'}}
+                            >
+                                Sair (Dono Logado)
+                            </button>
+                        )}
+                    </div>
+                    
+                    {content}
+                </div>
+            );
+        };
+
+        // ====================================================================
+        // 5. RENDERIZAÇÃO FINAL
+        // ====================================================================
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+
+    </script>
+</body>
+</html>
